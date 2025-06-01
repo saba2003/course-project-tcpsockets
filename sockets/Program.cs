@@ -7,7 +7,24 @@
 
     class Program
     {
-        static readonly string WebRoot = Path.Combine(Directory.GetCurrentDirectory(), "webroot");
+        static readonly string WebRoot = FindProjectRootContaining("webroot");
+
+        static string FindProjectRootContaining(string folderName)
+        {
+            string current = Directory.GetCurrentDirectory();
+            while (current != null)
+            {
+                string potential = Path.Combine(current, folderName);
+                if (Directory.Exists(potential))
+                {
+                    return potential;
+                }
+                current = Directory.GetParent(current)?.FullName;
+            }
+            throw new DirectoryNotFoundException($"'{folderName}' directory not found in any parent folder.");
+        }
+
+
         static readonly string LogFile = "server.log";
         static readonly int Port = 8080;
 
@@ -78,7 +95,7 @@
 
                 if (!File.Exists(filePath))
                 {
-                    SendResponse(writer, $"404 Not Found {filePath}", "text/html", ErrorPage($"404 Not Found {filePath}"));
+                    SendResponse(writer, $"404 Not Found {filePath}", "text/html", ErrorPage($"404 Not Found"));
                     return;
                 }
 
